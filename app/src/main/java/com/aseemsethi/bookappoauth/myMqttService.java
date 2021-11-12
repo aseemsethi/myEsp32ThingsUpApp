@@ -14,6 +14,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,6 +29,8 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.util.Calendar;
+
+import kotlin.random.URandomKt;
 
 import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE;
 import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC;
@@ -47,6 +50,7 @@ public class myMqttService extends Service {
     String CHANNEL_URG = "urgent";
     NotificationManager mNotificationManager;
     Notification notification;
+    int incr = 100;
     int counter = 1;
     MqttHelper mqttHelper;
     final static String MQTTSUBSCRIBE_ACTION = "MQTTSUBSCRIBE_ACTION";
@@ -162,27 +166,30 @@ public class myMqttService extends Service {
 
         noti = new Notification.Builder(this, CHANNEL_ID)
                 //.setContentTitle(title + " : ")
-                .setContentText("Temp/Humid:" + arrOfStr[1].trim() +
-                        "/"+arrOfStr[3].trim() + " :" + arrOfStr[4].trim())
+                .setContentText(arrOfStr[0].trim() +
+                        "/"+arrOfStr[1].trim() + " :" + arrOfStr[2].trim()
+                    + " :" + arrOfStr[3].trim() +
+                        " :" + arrOfStr[4].trim())
                 .setSmallIcon(R.drawable.ic_launcher_background)
                 .setContentIntent(pendingIntent)
                 //.setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 })
                 //.setSound(defaultSoundUri)
                 .build();
+        mNotificationManager.notify(incr++, noti);
 
         if (Double.parseDouble(arrOfStr[1].trim()) > 30.0) {
             Log.d(TAG, "Alarm !!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             noti = new Notification.Builder(this, CHANNEL_URG)
                     .setContentTitle(title + " : ")
-                    .setContentText("Temp/Humid:" + arrOfStr[1].trim() +
+                    .setContentText(arrOfStr[1].trim() +
                             "/"+arrOfStr[3].trim() + " :" + arrOfStr[4].trim())
                     .setSmallIcon(R.drawable.ic_launcher_background)
                     .setContentIntent(pendingIntent)
                     .setSound(ringtoneUri)
                     .setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 })
                     .build();
+            mNotificationManager.notify(incr++, noti);
         }
-        mNotificationManager.notify(1, noti);
     }
 
     private void startMqtt() throws MqttException {
@@ -204,6 +211,14 @@ public class myMqttService extends Service {
                 String[] arrOfStr = msg.split(":", 5);
                 Log.d(TAG, "MQTT Msg recvd...:" + arrOfStr[0] + " : " + arrOfStr[1] +
                         " : " + arrOfStr[2] + " : " + arrOfStr[3]);
+
+                Intent intent = new Intent();
+                intent.setAction("com.aseemsethi.bookappoauth.IdStatus");
+                intent.putExtra("Id", arrOfStr[1].trim());
+                intent.putExtra("Status", arrOfStr[2].trim());
+                sendBroadcast(intent);
+                Log.d(TAG, "Sent Broadcast.......");
+
                 sendNotification(msg);
                 if ((arrOfStr[1].trim()).equals("4ffe1a")) {
                     //Log.d(TAG, "MQTT Msg recvd from: 4ffe1a");
@@ -216,11 +231,7 @@ public class myMqttService extends Service {
                     //v1.setText(arrOfStr[2]);
                     //sendNotification(msg);
                 }
-                Intent intent = new Intent();
-                intent.putExtra("Temp", arrOfStr[1].trim());
-                intent.putExtra("Humidity", arrOfStr[3].trim());
-                intent.setAction("TempHumid");
-                sendBroadcast(intent);
+
             }
             @Override
             public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {

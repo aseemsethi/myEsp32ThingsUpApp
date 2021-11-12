@@ -13,7 +13,6 @@ import android.widget.TextView;
 import com.aseemsethi.bookappoauth.ui.main.PageViewModel;
 import com.google.android.material.tabs.TabLayout;
 
-import androidx.annotation.RequiresApi;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
@@ -50,10 +49,9 @@ public class MainActivity extends AppCompatActivity {
         startService(serviceIntent);
     }
     void registerServices() {
-        Log.d(TAG, "registerServices called");
+        Log.d(TAG, "registerServices called filter1");
         IntentFilter filter1 = new IntentFilter("RestartMqtt");
         myReceiverMqtt = new BroadcastReceiver() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (isMyServiceRunning(myMqttService.class)) {
@@ -69,16 +67,16 @@ public class MainActivity extends AppCompatActivity {
         };
         registerReceiver(myReceiverMqtt, filter1);
 
-        IntentFilter filter2 = new IntentFilter("TempHumid");
+        Log.d(TAG, "registerServices called filter2");
+        IntentFilter filter2 = new IntentFilter("com.aseemsethi.bookappoauth.IdStatus");
         myReceiverMqttStatus = new BroadcastReceiver() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.d(TAG, "registerServices: TempHumid:" +
-                        intent.getStringExtra("Temp") + " : " +
-                        intent.getStringExtra("Humidity"));
-                pageViewModel.setStatus( intent.getStringExtra("Temp") +
-                        ":" + intent.getStringExtra("Humidity"));
+                Log.d(TAG, "registerServices: IdStatus:" +
+                        intent.getStringExtra("Id") + " : " +
+                        intent.getStringExtra("Status"));
+                pageViewModel.setStatus( intent.getStringExtra("Id") +
+                        ":" + intent.getStringExtra("Status"));
             }
         };
         registerReceiver(myReceiverMqttStatus, filter2);
@@ -96,6 +94,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "OnResume - Register BroadcastReceiver");
+        //registerServices();
+    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "OnStart - Register BroadcastReceiver");
         registerServices();
     }
 }

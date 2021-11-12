@@ -67,7 +67,6 @@ import static java.lang.Thread.sleep;
         public void connect(){
             MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
             mqttConnectOptions.setCleanSession(true); // was false
-            // If we dont set the keepalive to 0, then MQTT stops with error
             // unregister alarmreceiver to mqttservice
             mqttConnectOptions.setKeepAliveInterval(20);
             mqttConnectOptions.setConnectionTimeout(0);

@@ -67,7 +67,7 @@ public class securityFragment extends Fragment {
                 Log.d(TAG, "onChanged Status: " + s);
                 String[] arr = s.split(":", 2);
                     TextView v1 = (TextView) root.findViewById(R.id.sensorValue1);
-                    v1.setText("Temp:" + arr[0] + ", Humid:" + arr[1]);
+                    v1.setText("Door:" + arr[0] + ", Status:" + arr[1]);
             }
         });
         return root;
